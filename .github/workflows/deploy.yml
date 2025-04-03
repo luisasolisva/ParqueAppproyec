@@ -13,7 +13,7 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v3
 
-      - name: Verificar archivos en el runner
+      - name: Verificar archivos en GitHub Actions
         run: ls -la
 
       - name: Agregar host SSH a known_hosts
@@ -49,6 +49,9 @@ jobs:
             sudo mkdir -p /var/www/parqueapp
             sudo chmod -R 777 /var/www/parqueapp
 
+      - name: Verificar archivos antes de copiar al servidor
+        run: ls -la
+
       - name: Copiar archivos al servidor
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -56,7 +59,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "*"
+          source: "*/"  # Copia todos los archivos y subdirectorios
           target: "/var/www/parqueapp"
           strip_components: 1
 
