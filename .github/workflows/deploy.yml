@@ -13,6 +13,9 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v3
 
+      - name: Verificar archivos en el runner
+        run: ls -la
+
       - name: Agregar host SSH a known_hosts
         run: |
           mkdir -p ~/.ssh
@@ -53,7 +56,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "mandanga/*"
+          source: "*"
           target: "/var/www/parqueapp"
           strip_components: 1
 
@@ -68,4 +71,3 @@ jobs:
             sudo -S chown -R www-data:www-data /var/www/parqueapp
             sudo -S chmod -R 755 /var/www/parqueapp
             sudo -S systemctl restart apache2
-
