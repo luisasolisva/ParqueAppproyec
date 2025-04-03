@@ -50,7 +50,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "*/"  # Asegura que se copien TODOS los archivos
+          source: "."  # Copia todos los archivos
           target: "/var/www/parqueapp"
           strip_components: 1
 
@@ -65,3 +65,9 @@ jobs:
             sudo -S chown -R www-data:www-data /var/www/parqueapp
             sudo -S chmod -R 755 /var/www/parqueapp
             sudo -S systemctl restart apache2
+
+      - name: Verificar contenido del repositorio
+        run: git status
+
+      - name: Verificar archivos ignorados
+        run: git check-ignore -v *
