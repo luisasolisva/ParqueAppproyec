@@ -3,7 +3,7 @@ name: Deploy al Servidor Ubuntu
 on:
   push:
     branches:
-      - main  # Se ejecutará cuando hagas push a la rama main
+      - main
 
 jobs:
   deploy:
@@ -12,9 +12,15 @@ jobs:
     steps:
       - name: Checkout del código
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Descarga todo el historial de Git
 
       - name: Verificar archivos en GitHub Actions
-        run: ls -la
+        run: |
+          echo "Listando archivos en GitHub Actions:"
+          ls -la
+          echo "Verificando estructura de archivos:"
+          find .
 
       - name: Agregar host SSH a known_hosts
         run: |
@@ -37,21 +43,6 @@ jobs:
             fi
             mkdir -p "/var/www/parqueapp"
 
-      - name: Forzar actualización de archivos en el servidor
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            sudo rm -rf /var/www/parqueapp*
-            sudo mkdir -p /var/www/parqueapp
-            sudo chmod -R 777 /var/www/parqueapp
-
-      - name: Verificar archivos antes de copiar al servidor
-        run: ls -la
-
       - name: Copiar archivos al servidor
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -59,7 +50,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "*/"  # Copia todos los archivos y subdirectorios
+          source: "*/"  # Asegura que se copien TODOS los archivos
           target: "/var/www/parqueapp"
           strip_components: 1
 
