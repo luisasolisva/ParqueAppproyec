@@ -70,4 +70,4 @@ jobs:
         run: git status
 
       - name: Verificar archivos ignorados
-        run: git check-ignore -v *
+        run: git check-ignore -v * || echo "No hay archivos ignorados"
