@@ -13,14 +13,7 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Descarga todo el historial de Git
-
-      - name: Verificar archivos en GitHub Actions
-        run: |
-          echo "Listando archivos en GitHub Actions:"
-          ls -la
-          echo "Verificando estructura de archivos:"
-          find .
+          fetch-depth: 0
 
       - name: Agregar host SSH a known_hosts
         run: |
@@ -29,7 +22,7 @@ jobs:
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
 
-      - name: Backup de la versión anterior en el servidor
+      - name: Verificar usuario en el servidor
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -37,22 +30,31 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            if [ -d "/var/www/parqueapp" ]; then
-              TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
-              mv "/var/www/parqueapp" "/var/www/parqueapp_$TIMESTAMP"
-            fi
-            mkdir -p "/var/www/parqueapp"
+            echo "Usuario en el servidor:"
+            whoami
+            echo "Grupo en el servidor:"
+            id -gn
 
-      - name: Copiar archivos al servidor
+      - name: Limpiar directorio antes de desplegar
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            sudo rm -rf /var/www/parqueapp/*
+
+      - name: Deploy files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "."  # Copia todos los archivos
+          source: "."
           target: "/var/www/parqueapp"
-          strip_components: 1
+          overwrite: true  # ✅ Permite sobrescribir archivos
 
       - name: Ajustar permisos de archivos en el servidor
         uses: appleboy/ssh-action@v1.1.0
@@ -62,42 +64,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            sudo -S chown -R www-data:www-data /var/www/parqueapp
-            sudo -S chmod -R 755 /var/www/parqueapp
-            sudo -S systemctl restart apache2
-
-      - name: Verificar contenido del repositorio
-        run: git status
-
-      - name: Verificar archivos ignorados
-        run: git check-ignore -v * || echo "No hay archivos ignorados"
-
-      # ✅ Verificar usuario en el servidor antes del despliegue
-      - name: Verificar usuario en el servidor
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: whoami
-
-      # ✅ Limpiar directorio antes de desplegar
-      - name: Limpiar directorio antes de desplegar
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: rm -rf /var/www/parqueapp/*
-
-      # ✅ Extraer archivos en el servidor con permisos elevados
-      - name: Extraer archivos en el servidor con permisos elevados
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: sudo tar --overwrite -xzf archivo.tar.gz -C /var/www/parqueapp
+            sudo chown -R www-data:www-data /var/www/parqueapp
+            sudo chmod -R 755 /var/www/parqueapp
+            sudo systemctl restart apache2
