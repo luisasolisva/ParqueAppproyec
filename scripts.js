@@ -5,3 +5,10 @@
 */
 // This file is intentionally blank
 // Use this file to add JavaScript to your project
+
+// Este archivo puede contener interactividad personalizada, si es necesario
+// Por ahora está vacío, pero si agregas funcionalidades con JavaScript, este archivo es el adecuado.
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("La página ha cargado correctamente.");
+});
