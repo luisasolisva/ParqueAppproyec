@@ -71,3 +71,33 @@ jobs:
 
       - name: Verificar archivos ignorados
         run: git check-ignore -v * || echo "No hay archivos ignorados"
+
+      # ✅ Verificar usuario en el servidor antes del despliegue
+      - name: Verificar usuario en el servidor
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: whoami
+
+      # ✅ Limpiar directorio antes de desplegar
+      - name: Limpiar directorio antes de desplegar
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: rm -rf /var/www/parqueapp/*
+
+      # ✅ Extraer archivos en el servidor con permisos elevados
+      - name: Extraer archivos en el servidor con permisos elevados
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: sudo tar --overwrite -xzf archivo.tar.gz -C /var/www/parqueapp
