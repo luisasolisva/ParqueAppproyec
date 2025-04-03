@@ -29,34 +29,3 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            echo "Usuario en el servidor:"
-            whoami
-            echo "Grupo en el servidor:"
-            id -gn
-
-      - name: Limpiar directorio antes de desplegar
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            sudo rm -rf /var/www/parqueapp/*
-
-      - name: Deploy files con rsync (excluyendo .git y .github)
-        run: |
-          rsync -av --exclude=".git" --exclude=".github" -e "ssh -p ${{ secrets.SSH_PORT }}" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/parqueapp
-
-      - name: Ajustar permisos de archivos en el servidor
-        uses: appleboy/ssh-action@v1.1.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            sudo chown -R www-data:www-data /var/www/parqueapp
-            sudo chmod -R 755 /var/www/parqueapp
-            sudo systemctl restart apache2
